@@ -1,7 +1,58 @@
 #!/bin/lua
 
 -------- Configuración de la carpeta raíz de Infernal --------
-local infernalRoot = os.getenv("HOME") .. "/infernal"
+local infernalRoot = os.getenv("HOME") .. "/.infernal"
+
+----------- Instalación Automática (Primera Ejecución) -----
+local function instalarEnPrimeraEjecucion()
+    local home = os.getenv("HOME")
+    local installDir = home .. "/.infernal"
+    local lockFile = installDir .. "/.installed"
+    
+    -- Verificar si ya se ha instalado
+    local f = io.open(lockFile, "r")
+    if f then
+        f:close()
+        return  -- Ya instalado, continuar normalmente
+    end
+    
+    -- Obtener el directorio del script original
+    local scriptPath = arg[0]
+    local scriptDir = scriptPath:gsub("/[^/]+$", "")
+    
+    -- Si no es una ruta absoluta, intentar obtenerla
+    if not scriptDir:match("^/") then
+        scriptDir = os.getenv("PWD") .. "/" .. scriptDir
+    end
+    
+    print("\27[1;33m⚡ Primera ejecución detectada...\27[0m")
+    print("\27[1;34m📦 Instalando Infernal en " .. installDir .. "...\27[0m")
+    
+    -- Crear directorio de instalación
+    os.execute("mkdir -p '" .. installDir:gsub("'", "'\\''") .. "'")
+    
+    -- Copiar todo el contenido (excluyendo .git si existe)
+    local copyCmd = "cp -r '" .. scriptDir:gsub("'", "'\\''") .. "/'* '" .. installDir:gsub("'", "'\\''") .. "/' 2>/dev/null; true"
+    os.execute(copyCmd)
+    
+    -- Crear archivo de lock para marcar como instalado
+    local lockF = io.open(lockFile, "w")
+    if lockF then
+        lockF:write("installed\n")
+        lockF:close()
+    end
+    
+    -- Hacer ejecutable el script principal
+    os.execute("chmod +x '" .. installDir:gsub("'", "'\\''") .. "/infernal.lua' 2>/dev/null")
+    os.execute("chmod +x '" .. installDir:gsub("'", "'\\''") .. "/apps'/* 2>/dev/null")
+    
+    print("\27[1;32m✓ Instalación completada!\27[0m")
+    print("\27[36mPuedes ejecutar desde cualquier lugar: ~/.infernal/infernal.lua\27[0m\n")
+end
+
+-- Ejecutar instalación si es necesario
+instalarEnPrimeraEjecucion()
+----------------------------------------------------------
 
 ----------- Variables de personalización ----------------
 local colores = {
@@ -41,7 +92,7 @@ local function ejecutarEnTerminal(comando, dirActual)
     os.execute("cd '" .. safeDir .. "' && " .. comando)
 end
 
--- Función de ejecución con prioridad: ~/infernal/apps/ > ~/.local/bin/ > PATH
+-- Función de ejecución con prioridad: ~/.infernal/apps/ > ~/.local/bin/ > PATH
 local function ejecutarComandoPersonalizado(cmd, dirActual)
     local base = cmd:match("^(%S+)")
     if not base then return end
