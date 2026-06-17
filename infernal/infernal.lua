@@ -27,12 +27,14 @@ local function instalarEnPrimeraEjecucion()
     
     print("\27[1;33m⚡ Primera ejecución detectada...\27[0m")
     print("\27[1;34m📦 Instalando Infernal en " .. installDir .. "...\27[0m")
+    print("\27[1;36m   Desde: " .. scriptDir .. "\27[0m")
     
     -- Crear directorio de instalación
     os.execute("mkdir -p '" .. installDir:gsub("'", "'\\''") .. "'")
     
-    -- Copiar todo el contenido (excluyendo .git si existe)
-    local copyCmd = "cp -r '" .. scriptDir:gsub("'", "'\\''") .. "/'* '" .. installDir:gsub("'", "'\\''") .. "/' 2>/dev/null; true"
+    -- Copiar SOLO los archivos específicos del proyecto (lista blanca)
+    -- Esto evita copiar archivos del sistema
+    local copyCmd = "cd '" .. scriptDir:gsub("'", "'\\''") .. "' && for item in infernal.lua CONFIGURATION Logo Logo2 Fetch History apps README* CAMBIOS* SISTEMA*; do [ -e \"$item\" ] && cp -r \"$item\" '" .. installDir:gsub("'", "'\\''") .. "/' 2>/dev/null; done; true"
     os.execute(copyCmd)
     
     -- Crear archivo de lock para marcar como instalado
