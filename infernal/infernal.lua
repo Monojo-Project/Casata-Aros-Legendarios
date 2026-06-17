@@ -52,6 +52,16 @@ end
 
 -- Ejecutar instalación si es necesario
 instalarEnPrimeraEjecucion()
+
+----------- Dar permisos de ejecución automáticos --------
+local function darPermisosApps()
+    local appsDir = infernalRoot .. "/apps"
+    -- Dar permisos de ejecución a todos los archivos en apps/
+    os.execute("chmod +x '" .. appsDir:gsub("'", "'\\''") .. "'/* 2>/dev/null; true")
+end
+
+-- Ejecutar automáticamente cada vez que se inicia Infernal
+darPermisosApps()
 ----------------------------------------------------------
 
 ----------- Paleta de Colores Disponibles ----------------
