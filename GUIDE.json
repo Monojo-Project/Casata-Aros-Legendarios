@@ -5,6 +5,12 @@
       "dest": "/usr/bin",
       "name": "infernal",
       "executable": true
+    },
+    {
+      "file": "infernal/apps/lyndsfetch",
+      "dest": "/usr/local/casata/apps/infernal/infernal",
+      "name": "Fetch",
+      "executable": true
     }
   ]
 }
