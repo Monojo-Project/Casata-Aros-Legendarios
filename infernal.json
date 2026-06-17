@@ -1,6 +1,6 @@
 {
   "name": "infernal",
-  "version": "1.0",
+  "version": "1.1",
   "dependencies": ["lua5.4", "nano"],
   "size": "136.3 KiB",
   "description": "Infernal, un shell escrito en Lua, con Bash como backend.",
