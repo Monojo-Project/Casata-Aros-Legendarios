@@ -1,7 +1,43 @@
-!/bin/lua
+#!/bin/lua
 
 -------- Configuración de la carpeta raíz de Infernal --------
-local infernalRoot = os.getenv("HOME") .. "/infernal"
+local infernalRoot = os.getenv("HOME") .. "/.infernal"
+
+----------- Instalación Automática (Primera Ejecución) -----
+local function instalarEnPrimeraEjecucion()
+    local sourceDir = "/usr/local/casata/apps/infernal/infernal"
+    local lockFile = infernalRoot .. "/.installed"
+    
+    -- Verificar si ya se ha instalado
+    local f = io.open(lockFile, "r")
+    if f then
+        f:close()
+        return  -- Ya instalado
+    end
+
+    -- Verificar que la fuente existe
+    local checkSource = io.open(sourceDir, "r")
+    if not checkSource then return end -- No es la ruta, no instalamos
+    checkSource:close()
+    
+    print("\27[1;33m⚡ Primera ejecución: Instalando archivos...\27[0m")
+    os.execute("mkdir -p '" .. infernalRoot:gsub("'", "'\\''") .. "'")
+    
+    -- Copiar todo EXCEPTO infernal.lua usando find
+    local copyCmd = "find '" .. sourceDir .. "' -maxdepth 1 -mindepth 1 ! -name 'infernal.lua' -exec cp -r {} '" .. infernalRoot .. "/' \\;"
+    os.execute(copyCmd)
+    
+    -- Crear lock
+    local lockF = io.open(lockFile, "w")
+    if lockF then
+        lockF:write("installed\n")
+        lockF:close()
+    end
+    print("\27[1;32m✓ Instalación completada en " .. infernalRoot .. "\27[0m")
+end
+
+-- Ejecutar instalación
+instalarEnPrimeraEjecucion()
 
 ----------- Variables de personalización ----------------
 local colores = {
