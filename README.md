@@ -1,2 +1,2 @@
-# Casata-Aros-Legendarios
-Repositorio oficial del proyecto de los Aros Legendarios para Casata.
+# Light Beacon
+Proximamente, una app para recibir notificaciones del soporte de Lynds Corp.
