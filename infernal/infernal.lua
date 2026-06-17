@@ -34,33 +34,31 @@ local colorPalette = {
 }
 
 ----------- Funciones Auxiliares ----
-local function leerConfiguracion()
-    local configFile = infernalRoot .. "/CONFIGURATION"
-    local config = {}
+local function pausar()
+    io.write("\n" .. colors.bold .. "Presiona Enter para continuar..." .. colors.reset)
+    io.read()
+end
+
+local function instalarArchivos()
+    -- Obtenemos el directorio actual desde donde se ejecuta el script
+    local currentDir = os.getenv("PWD")
     
-    local f = io.open(configFile, "r")
-    if not f then
-        return nil
+    -- Si no estamos ya en ~/.infernal, copiamos los archivos
+    if currentDir ~= infernalRoot then
+        print(colors.cyan .. "⚙️  Instalando archivos en " .. infernalRoot .. "..." .. colors.reset)
+        os.execute("mkdir -p " .. infernalRoot)
+        -- Copiamos todo el contenido del directorio actual a ~/.infernal
+        os.execute("cp -r ./* " .. infernalRoot .. " 2>/dev/null")
+        print(colors.green .. "✓ Archivos copiados correctamente." .. colors.reset)
+        os.execute("sleep 1") -- Pequeña pausa visual
     end
-    
-    for linea in f:lines() do
-        if linea:match("=") and not linea:match("^%[") then
-            local key, value = linea:match("^([^=]+)=(.+)$")
-            if key and value then
-                config[key:gsub("%s+$", "")] = value:gsub("%s+$", "")
-            end
-        end
-    end
-    f:close()
-    
-    return config
 end
 
 local function guardarConfiguracion(config)
     local configFile = infernalRoot .. "/CONFIGURATION"
     local f = io.open(configFile, "w")
     if not f then
-        print(colors.red .. "❌ Error: No se pudo abrir el archivo de configuración" .. colors.reset)
+        print(colors.red .. "❌ Error: No se pudo abrir el archivo de configuración en " .. configFile .. colors.reset)
         return false
     end
     
@@ -81,6 +79,43 @@ local function guardarConfiguracion(config)
     
     f:close()
     return true
+end
+
+local function leerConfiguracion()
+    local configFile = infernalRoot .. "/CONFIGURATION"
+    local config = {}
+    
+    local f = io.open(configFile, "r")
+    if not f then
+        -- Si no existe, creamos una configuración por defecto para que no crashee
+        print(colors.yellow .. "⚠️  No se encontró CONFIGURATION. Creando uno por defecto..." .. colors.reset)
+        config = {
+            Folders = "blue",
+            Symlinks = "cyan",
+            Files = "white",
+            Executables = "green",
+            Logo = "Logo1",
+            UserColor = "green",
+            HostnameColor = "blue",
+            AtsingColor = "magenta",
+            PwdColor = "cyan",
+            Root = "false"
+        }
+        guardarConfiguracion(config)
+        return config
+    end
+    
+    for linea in f:lines() do
+        if linea:match("=") and not linea:match("^%[") then
+            local key, value = linea:match("^([^=]+)=(.+)$")
+            if key and value then
+                config[key:gsub("%s+$", "")] = value:gsub("%s+$", "")
+            end
+        end
+    end
+    f:close()
+    
+    return config
 end
 
 local function limpiarPantalla()
@@ -154,7 +189,7 @@ local function seleccionarLogo()
     end
     
     if #logos == 0 then
-        print(colors.red .. "⚠️  No se encontraron logos disponibles" .. colors.reset)
+        print(colors.red .. "⚠️  No se encontraron logos disponibles en " .. infernalRoot .. colors.reset)
         return nil
     end
     
@@ -174,11 +209,6 @@ local function seleccionarLogo()
             print(colors.red .. "❌ Opción no válida, intenta de nuevo." .. colors.reset)
         end
     end
-end
-
-local function pausar()
-    io.write("\n" .. colors.bold .. "Presiona Enter para continuar..." .. colors.reset)
-    io.read()
 end
 
 local function mostrarConfiguracionActual(config)
@@ -204,13 +234,18 @@ end
 
 ----------- Función Principal ----
 local function main()
+    -- 1. Copiar los archivos a ~/.infernal si es necesario
+    instalarArchivos()
+    
+    -- 2. Leer la configuración (o crear una por defecto)
     local config = leerConfiguracion()
     
     if not config then
-        print(colors.red .. "❌ Error: No se encontró el archivo de configuración en " .. infernalRoot .. colors.reset)
+        print(colors.red .. "❌ Error crítico: No se pudo cargar ni crear la configuración." .. colors.reset)
         os.exit(1)
     end
     
+    -- 3. Bucle principal del menú
     while true do
         limpiarPantalla()
         mostrarMenu()
