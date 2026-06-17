@@ -54,6 +54,21 @@ end
 instalarEnPrimeraEjecucion()
 ----------------------------------------------------------
 
+----------- Paleta de Colores Disponibles ----------------
+local colorMap = {
+    black   = "\27[30m",
+    red     = "\27[31m",
+    green   = "\27[32m",
+    yellow  = "\27[33m",
+    blue    = "\27[34m",
+    magenta = "\27[35m",
+    cyan    = "\27[36m",
+    white   = "\27[37m",
+    orange  = "\27[38;5;208m",
+    purple  = "\27[35m",
+    gray    = "\27[37m",
+}
+
 ----------- Variables de personalización ----------------
 local colores = {
     azul  = "\27[34m",
@@ -77,6 +92,48 @@ local colores = {
     bold  = "\27[1m",
     reset = "\27[0m"
 }
+
+----------- Funciones de Configuración ----
+local function leerConfiguracion()
+    local configFile = infernalRoot .. "/CONFIGURATION"
+    local config = {}
+    
+    local f = io.open(configFile, "r")
+    if not f then
+        -- Crear configuración por defecto
+        return {
+            Folders = "blue",
+            Symlinks = "orange",
+            Files = "white",
+            Executables = "green",
+            Logo = "Logo",
+            UserColor = "red",
+            HostnameColor = "red",
+            AtsingColor = "red",
+            PwdColor = "blue",
+            Root = infernalRoot
+        }
+    end
+    
+    for linea in f:lines() do
+        if linea:match("=") and not linea:match("^%[") then
+            local key, value = linea:match("^([^=]+)=(.+)$")
+            if key and value then
+                config[key:gsub("%s+$", "")] = value:gsub("%s+$", "")
+            end
+        end
+    end
+    f:close()
+    
+    return config
+end
+
+local function getColorCode(colorName)
+    return colorMap[colorName] or colorMap["white"]
+end
+
+-- Cargar configuración
+local config = leerConfiguracion()
 
 ----------- Funciones del Sistema -----------------------
 local function capturarComando(comando)
@@ -149,10 +206,16 @@ local function leerComando(user, hostname, dirActual)
     end
     local safeDisplayDir = display_dir:gsub("'", "'\\''")
 
-    local pUser = "\1" .. colores.bold .. colores.rojo .. "\2" .. user .. "\1" .. colores.reset .. "\2"
-    local pArroba = "\1" .. colores.rojo .. "\2@\1" .. colores.reset .. "\2"
-    local pHost = "\1" .. colores.bold .. colores.rojo .. "\2" .. hostname .. "\1" .. colores.reset .. "\2"
-    local pDir = "\1" .. colores.bold .. colores.azul .. "\2" .. safeDisplayDir .. "\1" .. colores.reset .. "\2"
+    -- Usar colores de configuración
+    local userColor = getColorCode(config.UserColor)
+    local hostColor = getColorCode(config.HostnameColor)
+    local atColor = getColorCode(config.AtsingColor)
+    local pwdColor = getColorCode(config.PwdColor)
+
+    local pUser = "\1" .. colores.bold .. userColor .. "\2" .. user .. "\1" .. colores.reset .. "\2"
+    local pArroba = "\1" .. atColor .. "\2@\1" .. colores.reset .. "\2"
+    local pHost = "\1" .. colores.bold .. hostColor .. "\2" .. hostname .. "\1" .. colores.reset .. "\2"
+    local pDir = "\1" .. colores.bold .. pwdColor .. "\2" .. safeDisplayDir .. "\1" .. colores.reset .. "\2"
 
     local promptFinal = pUser .. pArroba .. pHost .. ":" .. pDir .. "$ "
 
@@ -219,7 +282,7 @@ end
 local hostname = capturarComando("hostname")
 local user = capturarComando("whoami")
 local home = os.getenv("HOME")
-local rutaLogo = infernalRoot .. "/Logo"
+local rutaLogo = infernalRoot .. "/" .. config.Logo
 local logo = leerArchivo(rutaLogo)
 local dirActual = getDirectorioInicial()
 
