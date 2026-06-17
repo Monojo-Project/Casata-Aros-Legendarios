@@ -1,0 +1,10 @@
+{
+  "links": [
+    {
+      "file": "infernal/infernal.lua",
+      "dest": "/usr/bin",
+      "name": "infernal",
+      "executable": true
+    }
+  ]
+}
