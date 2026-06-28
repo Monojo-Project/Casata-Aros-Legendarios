@@ -1,4 +1,4 @@
-#!/home/usuario/.infernal/lua
+#!/bin/lua
 
 ----------- Variables globales ----------
 local home = os.getenv("HOME") or "~"
