@@ -1,5 +1,9 @@
 #!/bin/lua
 
+-- Licencia GPL v3, Aros Legendarios, David Baña Szymaniak
+-- Adaptado para Casata
+-- Versión 1.2
+
 -- ------------------------------------------------------------
 -- 1. Obtener la ruta base del script
 -- ------------------------------------------------------------
