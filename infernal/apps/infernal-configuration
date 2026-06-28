@@ -1,0 +1,253 @@
+#!./lua
+-- Script interactivo para modificar Infernal.conf
+-- Las rutas son relativas al directorio del script
+
+-- ------------------------------------------------------------
+-- 1. Obtener la ruta base del script
+-- ------------------------------------------------------------
+local function get_script_dir()
+    local source = debug.getinfo(1).source
+    if source:sub(1,1) == "@" then source = source:sub(2) end
+    return source:match("(.*)/") or "."
+end
+
+local SCRIPT_DIR = get_script_dir()
+local CONFIG_FILE = SCRIPT_DIR .. "/../Infernal.conf"
+
+-- ------------------------------------------------------------
+-- 2. Configuración de tipos de clave
+-- ------------------------------------------------------------
+local COLOR_KEYS = {
+    ["Folders"] = true, ["Symlinks"] = true, ["Files"] = true,
+    ["Executables"] = true, ["UserColor"] = true,
+    ["HostnameColor"] = true, ["AtsingColor"] = true,
+    ["PwdColor"] = true
+}
+
+local BOOLEAN_KEYS = { ["ShowFetch"] = true }
+local LOGO_KEY = "Logo"
+local ROOT_KEY = "Root"
+
+local VALID_COLORS = { "blue", "orange", "white", "green", "red", "magenta" }
+
+-- ------------------------------------------------------------
+-- 3. Utilidades para listar logos
+-- ------------------------------------------------------------
+local function list_logos()
+    local parent_dir = SCRIPT_DIR .. "/../"
+    local handle = io.popen("ls -1 " .. parent_dir .. "Logo* 2>/dev/null")
+    if not handle then return {} end
+    local files = {}
+    for file in handle:lines() do
+        local name = file:match("([^/]+)$")
+        if name then table.insert(files, name) end
+    end
+    handle:close()
+    table.sort(files)
+    return files
+end
+
+-- ------------------------------------------------------------
+-- 4. Lectura / escritura del archivo
+-- ------------------------------------------------------------
+local function read_config()
+    local file = io.open(CONFIG_FILE, "r")
+    if not file then
+        print("Error: no se pudo abrir " .. CONFIG_FILE)
+        print("Asegúrate de que el archivo esté en el directorio padre del script.")
+        os.exit(1)
+    end
+    local lines = {}
+    local pairs = {}
+    local i = 0
+    for line in file:lines() do
+        i = i + 1
+        lines[i] = line
+        local key, val = line:match("^%s*([%w_]+)%s*=%s*(.*)$")
+        if key and val then
+            pairs[key] = { value = val, line_index = i }
+        end
+    end
+    file:close()
+    return lines, pairs
+end
+
+local function save_config(lines)
+    local file = io.open(CONFIG_FILE, "w")
+    if not file then
+        print("Error: no se pudo escribir en " .. CONFIG_FILE)
+        os.exit(1)
+    end
+    for _, line in ipairs(lines) do
+        file:write(line, "\n")
+    end
+    file:close()
+    print("Archivo guardado correctamente.")
+end
+
+-- ------------------------------------------------------------
+-- 5. Detectores de tipo
+-- ------------------------------------------------------------
+local function is_color_key(key)
+    return COLOR_KEYS[key] == true
+end
+
+local function is_boolean_key(key)
+    return BOOLEAN_KEYS[key] == true
+end
+
+local function is_logo_key(key)
+    return key == LOGO_KEY
+end
+
+-- ------------------------------------------------------------
+-- 6. Menús
+-- ------------------------------------------------------------
+local function show_main_menu(config_pairs)
+    print("\n=== Menú de configuración ===")
+    local keys = {}
+    for k, _ in pairs(config_pairs) do table.insert(keys, k) end
+    table.sort(keys)
+    for i, k in ipairs(keys) do
+        local mark = ""
+        if is_color_key(k) then
+            mark = " [color]"
+        elseif is_boolean_key(k) then
+            mark = " [boolean]"
+        elseif is_logo_key(k) then
+            mark = " [logo]"
+        elseif k == ROOT_KEY then
+            mark = " [ruta]"
+        end
+        print(string.format("%d. %s = %s%s", i, k, config_pairs[k].value, mark))
+    end
+    print("0. Salir")
+    return keys
+end
+
+-- Submenú colores
+local function choose_color(current_color)
+    print("\n--- Colores disponibles ---")
+    for i, color in ipairs(VALID_COLORS) do
+        local marker = (color == current_color and "  ← actual" or "")
+        print(string.format("%d. %s%s", i, color, marker))
+    end
+    print("0. Cancelar")
+    io.write("Elige un color (número): ")
+    io.read()  -- limpiar buffer
+    local choice = io.read("*n")
+    if choice and choice >= 1 and choice <= #VALID_COLORS then
+        return VALID_COLORS[choice]
+    end
+    return nil
+end
+
+-- Submenú booleano
+local function choose_boolean(current_value)
+    print("\n--- Valores booleanos ---")
+    local options = {"true", "false"}
+    for i, val in ipairs(options) do
+        local marker = (val == current_value and "  ← actual" or "")
+        print(string.format("%d. %s%s", i, val, marker))
+    end
+    print("0. Cancelar")
+    io.write("Elige un valor (número): ")
+    io.read()  -- limpiar buffer
+    local choice = io.read("*n")
+    if choice and choice >= 1 and choice <= #options then
+        return options[choice]
+    end
+    return nil
+end
+
+-- Submenú logos
+local function choose_logo(current_value)
+    local logos = list_logos()
+    if #logos == 0 then
+        print("No se encontraron archivos Logo* en el directorio padre.")
+        return nil
+    end
+    print("\n--- Logos disponibles ---")
+    for i, name in ipairs(logos) do
+        local marker = (name == current_value and "  ← actual" or "")
+        print(string.format("%d. %s%s", i, name, marker))
+    end
+    print("0. Cancelar")
+    io.write("Elige un logo (número): ")
+    io.read()  -- limpiar buffer
+    local choice = io.read("*n")
+    if choice and choice >= 1 and choice <= #logos then
+        return logos[choice]
+    end
+    return nil
+end
+
+-- Obtener nuevo valor según tipo
+local function get_new_value(key, current_value)
+    if is_color_key(key) then
+        print("(Esta clave admite colores)")
+        return choose_color(current_value)
+    elseif is_boolean_key(key) then
+        print("(Esta clave admite solo true o false)")
+        return choose_boolean(current_value)
+    elseif is_logo_key(key) then
+        print("(Esta clave selecciona un logo)")
+        return choose_logo(current_value)
+    else
+        -- Cualquier otra clave (Root, etc.) se trata como texto
+        if key == ROOT_KEY then
+            print("(Introduce una ruta, por ejemplo ~/.infernal)")
+        else
+            print("(Introduce un valor de texto)")
+        end
+        io.read()  -- limpiar buffer ANTES de leer la línea
+        io.write(string.format("Nuevo valor para '%s' (actual: %s): ", key, current_value))
+        local input = io.read("*line")
+        if input and input ~= "" then
+            return input
+        else
+            print("No se cambió (valor vacío).")
+            return nil
+        end
+    end
+end
+
+-- ------------------------------------------------------------
+-- 7. Bucle principal
+-- ------------------------------------------------------------
+local function main()
+    local lines, pairs = read_config()
+    local keys_list
+
+    while true do
+        keys_list = show_main_menu(pairs)
+        io.write("Elige una opción (0 para salir): ")
+        local option = io.read("*n")
+        if not option then
+            print("Entrada inválida, intenta de nuevo.")
+            io.read() -- limpiar buffer
+        elseif option == 0 then
+            print("Saliendo... Para ver los cambios, reinicia el shell.")
+            break
+        elseif option >= 1 and option <= #keys_list then
+            local key = keys_list[option]
+            local current = pairs[key].value
+            print(string.format("\nModificando '%s' (actual: %s)", key, current))
+            local new_value = get_new_value(key, current)
+            if new_value then
+                local line_idx = pairs[key].line_index
+                lines[line_idx] = key .. "=" .. new_value
+                pairs[key].value = new_value
+                save_config(lines)
+                print(string.format("'%s' actualizado a '%s'", key, new_value))
+            else
+                print("No se realizó ningún cambio.")
+            end
+        else
+            print("Opción no válida.")
+        end
+    end
+end
+
+-- Ejecutar
+main()
