@@ -1,6 +1,4 @@
-#!./lua
--- Script interactivo para modificar Infernal.conf
--- Las rutas son relativas al directorio del script
+#!/bin/lua
 
 -- ------------------------------------------------------------
 -- 1. Obtener la ruta base del script
