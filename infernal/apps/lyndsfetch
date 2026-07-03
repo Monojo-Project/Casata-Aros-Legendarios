@@ -577,7 +577,7 @@ get_info() {
             return 0
             ;;
         os)
-            info_label="Sistema operativo"
+            info_label="SO"
             info_val=$(grep '^PRETTY_NAME' /etc/os-release | cut -d'"' -f2)
             ;;
         arch)
