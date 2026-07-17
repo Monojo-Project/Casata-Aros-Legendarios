@@ -1,2 +1,0 @@
-#!/bin/bash
-xprop | grep WM_CLASS

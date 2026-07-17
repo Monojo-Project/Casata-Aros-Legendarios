@@ -2,7 +2,7 @@
   "links": [
     {
       "file": "infernal",
-      "dest": "/usr/bin",
+      "dest": "~/.local/bin",
       "name": "infernal",
       "executable": true
     }
