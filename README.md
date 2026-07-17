@@ -1,4 +1,12 @@
-# Casata-Aros-Legendarios
-Repositorio oficial del proyecto de los Aros Legendarios para Casata. Mantenido por David Baña Szymaniak.
+# Infernal
+Shell escrito en Lua. Funciona con Bash por debajo.
 
-Estas apps son más "secundarias" que las de LYNDS Project o de Monojo Project y tienen más filosofía detrás.
+Trae el binario compilado de CMatrix. (Código fuente en https://github.com/abishekvashok/cmatrix)
+
+La carpeta llamada *infernal* colocala en tu home.
+Ejecuta el infernal/infernal.lua.
+
+Para instalar Lua en Debian/Ubuntu/LyndsOS, ejecuta:
+```
+sudo apt install lua5.4
+```

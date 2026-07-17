@@ -1,0 +1,16 @@
+{
+  "links": [
+    {
+      "file": "infernal/infernal.lua",
+      "dest": "~/.local/bin",
+      "name": "infernal-pseudoshell",
+      "executable": true
+    },
+    {
+      "file": "infernal/apps/lyndsfetch",
+      "dest": "~/.local/casata/apps/infernal-pseudo-shell/infernal",
+      "name": "Fetch",
+      "executable": true
+    }
+  ]
+}
