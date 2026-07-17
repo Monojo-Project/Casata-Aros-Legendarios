@@ -1,8 +1,8 @@
 {
   "name": "infernal",
-  "version": "1.2",
-  "dependencies": ["lua5.4", "nano"],
-  "size": "136,3 KiB",
-  "description": "Infernal, un shell escrito en Lua, con Bash como backend.",
-  "usage": "Ejecuta infernal para abrirlo. Si lo quieres que se abra automaticamente al iniciar una terminal, añade en el final del archivo ~/.bashrc el texto 'infernal'"
+  "version": "1.1",
+  "dependencies": [],
+  "size": "200.4 KiB",
+  "description": "Infernal, un lenguaje de programación inspirado en Lua + Bash + Python. Es muy bueno para automatización..",
+  "usage": "Ejecuta `infernal SCRIPT.inf` y ejecutas ese script con Infernal."
 }

@@ -1,0 +1,8 @@
+{
+  "name": "infernal-pseudoshell",
+  "version": "1.2",
+  "dependencies": ["lua5.4", "nano"],
+  "size": "136,3 KiB",
+  "description": "Infernal, un pseudo-shell escrito en Lua. Es simplemente un frontend de shell.",
+  "usage": "Ejecuta infernal-pseudoshell para abrirlo. Si lo quieres que se abra automaticamente al iniciar una terminal, añade en el final del archivo ~/.bashrc el texto `infernal-pseudoshell`"
+}
