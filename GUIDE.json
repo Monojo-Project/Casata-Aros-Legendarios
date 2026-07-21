@@ -1,0 +1,10 @@
+{
+  "links": [
+    {
+      "file": "Fragmento_Estelar-x86_64.AppImage",
+      "dest": "/usr/bin",
+      "name": "fe",
+      "executable": true
+    }
+  ]
+}
